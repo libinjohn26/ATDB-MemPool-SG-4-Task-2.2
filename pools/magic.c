@@ -46,35 +46,13 @@ static data_ptr_t this_alloc(struct pool_strategy *self, u64 nbytes)
 {
         REQUIRE_INSTANCE_OF_THIS()
 
-/** Added this changes, so that it check first whether there is any space left in the pool,
-        and only then it assigns memory otherwise it will throw an error
+        void *ptr = malloc(nbytes);
+        assert(ptr);
 
-**/
-/***********************************************/
-        struct pool *pool;
-        u16 pos;
+        self->counters.num_alloc_calls++;
+        self->counters.num_bytes_allocd += nbytes;
 
-        pool = (self)->context;
-
-        pos = vec_length(&pool->in_use);
-
-        error_if(pos + 1 == UINT16_MAX, &pool->err, NG5_ERR_MEMPOOL_LIMIT);
-        if(&pool->err == NULL)
-        {
-
-                void *ptr = malloc(nbytes);
-                assert(ptr);
-
-                self->counters.num_alloc_calls++;
-                self->counters.num_bytes_allocd += nbytes;
-
-                return pool_internal_new(self, ptr, nbytes);
-        }
-        else
-        {
-                return pool_internal_new(self, NULL, nbytes);              
-        }
-
+        return pool_internal_new(self, ptr, nbytes);
 
 }
 
@@ -105,13 +83,13 @@ which is been already used by the caller.
 
 /**
 Shifted this code so that it only update the counter when reallocation has been 
-        successfully completed
+successfully completed
 **/
 
 /*****************************************/
                         self->counters.num_bytes_reallocd = nbytes;
                         self->counters.num_bytes_allocd += ng5_span(info->bytes_total, nbytes);
-/****************************************/
+/****************************************/ 
 
                         data_ptr_update(&ptr, new_adr);
                         data_ptr_update(&info->ptr, new_adr);
@@ -122,6 +100,12 @@ Shifted this code so that it only update the counter when reallocation has been
                 }
         
         }
+        else
+        {
+                info->bytes_used = nbytes;
+        }
+
+
 
         return ptr;
 }
