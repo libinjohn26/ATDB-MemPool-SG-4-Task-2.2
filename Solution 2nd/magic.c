@@ -82,6 +82,10 @@ which is been already used by the caller.
         if(nbytes > info->bytes_used)
         {
 
+/* here we are checking if the pool has any pool pointer which is not being used
+ and then checking whether the pool pointer is free to use and if bytes_total is more than nbytes
+  or else we use the realloc to assign new memory */
+                
                 if (!vec_is_empty(&pool->in_use_pos_freelist)) {
                         pos = *(u16 *) vec_pop(&pool->in_use_pos_freelist);
                         pool_ptr_info = (struct pool_ptr_info *) vec_at(&pool->in_use, pos);
